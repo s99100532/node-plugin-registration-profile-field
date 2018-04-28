@@ -6,7 +6,8 @@ var plugin = {},
         'location',
         'birthday',
         'signature',
-        'aboutme'
+        'aboutme',
+        'education_level'
     ],
     User = module.parent.require('./user'),
 	meta = module.parent.require('./meta');
@@ -63,6 +64,8 @@ plugin.addCaptcha = function(params, callback) {
     }
     if (field === 'aboutme') {
         var html = '<textarea class="form-control" name="registration-profile-field" id="registration-profile-field"></textarea>';
+    } else if (field === 'education_level') {
+        var html = '<select class="form-control" name="registration-profile-field" id="registration-profile-field"> <option value="小學">小學</option> <option value="初中">初中</option> <option value="高中">高中</option> <option value="專上非學位課程">專上非學位課程</option> <option value="專上學位課程">專上學位課程</option> </select>';
     } else {
         var html = '<input class="form-control" name="registration-profile-field" id="registration-profile-field" />';
     }
