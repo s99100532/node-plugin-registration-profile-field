@@ -1,7 +1,7 @@
 "use strict";
 
 var plugin = {},
-    fields = [ 
+    fields = [
         'website',
         'location',
         'birthday',
@@ -10,31 +10,35 @@ var plugin = {},
         'education_level'
     ],
     User = module.parent.require('./user'),
-	meta = module.parent.require('./meta');
+    meta = module.parent.require('./meta'),
+    db = module.parent.require('./database');
 
-plugin.init = function(params, callback) {
-	var app = params.router,
-		middleware = params.middleware,
-		controllers = params.controllers;
-		
-	app.get('/admin/registration-profile-field', middleware.admin.buildHeader, renderAdmin);
-	app.get('/api/admin/registration-profile-field', renderAdmin);
+var async = require('async');
 
-	callback();
+
+plugin.init = function (params, callback) {
+    var app = params.router,
+        middleware = params.middleware,
+        controllers = params.controllers;
+
+    app.get('/admin/registration-profile-field', middleware.admin.buildHeader, renderAdmin);
+    app.get('/api/admin/registration-profile-field', renderAdmin);
+
+    callback();
 };
 
-plugin.addAdminNavigation = function(header, callback) {
-	header.plugins.push({
-		route: '/registration-profile-field',
-		icon: 'fa-tint',
-		name: 'Registration Profile Field'
-	});
+plugin.addAdminNavigation = function (header, callback) {
+    header.plugins.push({
+        route: '/registration-profile-field',
+        icon: 'fa-tint',
+        name: 'Registration Profile Field'
+    });
 
-	callback(null, header);
+    callback(null, header);
 };
 
-plugin.customHeaders = function(headers, callback) {
-	var field = meta.config['registration-profile-field:field'];
+plugin.customHeaders = function (headers, callback) {
+    var field = meta.config['registration-profile-field:field'];
     headers.headers.push({
         label: '[[user:' + field + ']]',
     });
@@ -42,21 +46,63 @@ plugin.customHeaders = function(headers, callback) {
     callback(null, headers);
 };
 
-plugin.customFields = function(params, callback) {
-	var field = meta.config['registration-profile-field:field'];
-    var users = params.users.map(function(user) {
+function updateUidMapping(field, uid, value, oldValue, callback) {
+    if (value === oldValue) {
+        return callback();
+    }
+
+    async.series([
+        function (next) {
+            db.sortedSetRemove(field + ':uid', oldValue, next);
+        },
+        function (next) {
+            User.setUserField(uid, field, value, next);
+        },
+        function (next) {
+            if (value) {
+                db.sortedSetAdd(field + ':uid', uid, value, next);
+            } else {
+                next();
+            }
+        },
+    ], callback);
+}
+
+plugin.addCustomFieldUpdate = function (userData, callback) {
+
+    var uid = userData.uid;
+    var newEducation_level = userData.data['education_level'];
+
+
+    async.waterfall([
+        function (next) {
+            User.getUserField(uid, 'education_level', next);
+        },
+        function (education_level, next) {
+            winston.info(education_level);
+            updateUidMapping('education_level', uid, newEducation_level, education_level, next);
+        }
+    ]);
+
+    callback(null, userData);
+
+}
+
+plugin.customFields = function (params, callback) {
+    var field = meta.config['registration-profile-field:field'];
+    var users = params.users.map(function (user) {
         if (!user.customRows) {
             user.customRows = [];
         }
-        user.customRows.push({value: user[field]});
+        user.customRows.push({ value: user[field] });
         return user;
     });
 
-    callback(null, {users: users});
+    callback(null, { users: users });
 };
 
-plugin.addCaptcha = function(params, callback) {
-	var field = meta.config['registration-profile-field:field'];
+plugin.addCaptcha = function (params, callback) {
+    var field = meta.config['registration-profile-field:field'];
     console.log("Field: " + field);
     if (field == "") {
         callback(null, params);
@@ -70,41 +116,41 @@ plugin.addCaptcha = function(params, callback) {
         var html = '<input class="form-control" name="registration-profile-field" id="registration-profile-field" />';
     }
 
-	var captcha = {
+    var captcha = {
         label: '[[user:' + field + ']]',
-		html: html
-	};
+        html: html
+    };
 
-	if (params.templateData.regFormEntry && Array.isArray(params.templateData.regFormEntry)) {
-		params.templateData.regFormEntry.push(captcha);
-	} else {
-		params.templateData.captcha = captcha;
-	}
+    if (params.templateData.regFormEntry && Array.isArray(params.templateData.regFormEntry)) {
+        params.templateData.regFormEntry.push(captcha);
+    } else {
+        params.templateData.captcha = captcha;
+    }
 
-	callback(null, params);
+    callback(null, params);
 };
 
-plugin.createUser = function(params, callback) {
-	var field = meta.config['registration-profile-field:field'];
+plugin.createUser = function (params, callback) {
+    var field = meta.config['registration-profile-field:field'];
     var fieldData = params.data[field] || params.data['registration-profile-field'];
     var userData = params.user;
-    if (!userData[field] && fieldData && fieldData != "") 
+    if (!userData[field] && fieldData && fieldData != "")
         userData[field] = fieldData;
     params.user = userData
     callback(null, params);
 
 };
 
-plugin.addToApprovalQueue = function(params, callback) {
-	var field = meta.config['registration-profile-field:field'];
+plugin.addToApprovalQueue = function (params, callback) {
+    var field = meta.config['registration-profile-field:field'];
     var fieldData = params.userData['registration-profile-field'];
     var userData = params.data;
     userData[field] = fieldData;
-    callback(null, {data: userData});
+    callback(null, { data: userData });
 
 };
 function renderAdmin(req, res, next) {
-	res.render('admin/registration-profile-field', {fields:fields});
+    res.render('admin/registration-profile-field', { fields: fields });
 }
 
 module.exports = plugin;

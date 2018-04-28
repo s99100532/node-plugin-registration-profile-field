@@ -1,14 +1,10 @@
 {
-  "name": "nodebb-plugin-registration-profile-field",
-  "version": "0.2.1",
+  "name": "nodebb-plugin-registration-field-custom",
+  "version": "0.2.2",
   "description": "Add a field to user registration page to input additional profile data",
   "main": "library.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/T0ha/node-plugin-registration-profile-field.git"
   },
   "keywords": [
     "NodeBB",

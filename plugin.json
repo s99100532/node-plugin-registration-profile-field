@@ -4,28 +4,38 @@
 	"description": "Add a field to user registration page to input additional profile data",
 	"url": "https://github.com/T0ha/nodebb-plugin-registration-profile-field",
 	"library": "./library.js",
-	"hooks": [
-		{
-			"hook": "static:app.load", "method": "init"
+	"hooks": [{
+			"hook": "static:app.load",
+			"method": "init"
 		},
 		{
-			"hook": "filter:admin.header.build", "method": "addAdminNavigation"
+			"hook": "filter:admin.header.build",
+			"method": "addAdminNavigation"
 		},
 		{
-			"hook": "filter:register.build", "method": "addCaptcha"
-        },
-        {
-            "hook": "filter:admin.registrationQueue.customHeaders", "method": "customHeaders"
-        },
-        {
-            "hook": "filter:user.getRegistrationQueue", "method": "customFields"
-        },
+			"hook": "filter:register.build",
+			"method": "addCaptcha"
+		},
 		{
-			"hook": "filter:user.create", "method": "createUser"
-        },
-        {
-		"hook": "filter:user.addToApprovalQueue", "method": "addToApprovalQueue"
-        }
+			"hook": "filter:admin.registrationQueue.customHeaders",
+			"method": "customHeaders"
+		},
+		{
+			"hook": "filter:user.getRegistrationQueue",
+			"method": "customFields"
+		},
+		{
+			"hook": "filter:user.create",
+			"method": "createUser"
+		},
+		{
+			"hook": "filter:user.addToApprovalQueue",
+			"method": "addToApprovalQueue"
+		},
+		{
+			"hook": "filter:user.updateProfile",
+			"method": "addCustomFieldUpdate"
+		}
 	],
 	"staticDirs": {
 		"static": "./static"
@@ -36,5 +46,6 @@
 	"scripts": [
 		"static/lib/main.js"
 	],
-	"templates": "./static/templates"
+	"templates": "./static/templates",
+	"languages": "languages"
 }

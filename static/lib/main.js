@@ -1,10 +1,15 @@
 "use strict";
 /*global utils, app*/
 
-$(function() {
-	$(window).on('action:ajaxify.end', function(e, data) {
+$(function () {
+	$(window).on('action:ajaxify.end', function (e, data) {
 		if (data.url === 'register' && utils.param('error') === 'wrong-answer') {
 			app.alertError('You have answered the registration question incorrectly - please try again.');
 		}
+	});
+
+	$(window).on('action:profile.update', function (event, userData) {
+		userData['education_level'] = $('#inputEducation_level').val();
+
 	});
 });
